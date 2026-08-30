@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import org.springframework.http.HttpMethod;
 
 import org.springframework.security.authentication.AuthenticationManager;
@@ -59,6 +58,32 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/patients/**"
                         ).hasRole("ADMIN")
+
+                        // Doctor Management APIs
+                        .requestMatchers(
+                                "/api/doctors/**"
+                        ).hasRole("ADMIN")
+
+                        // Appointment Management APIs
+                        .requestMatchers(
+                                "/api/appointments/**"
+                        ).hasRole("ADMIN")
+
+                        // Prescriptions Management APIs
+                        .requestMatchers(
+                                "/api/prescriptions/**"
+                        ).hasRole("ADMIN")
+
+                        // medical-records Management APIs
+                        .requestMatchers(
+                                "/api/medical-records/**"
+                        ).hasRole("ADMIN")
+
+                        // billings Management APIs
+                        .requestMatchers(
+                                "/api/billings/**"
+                        ).hasRole("ADMIN")
+
 
                         // All other APIs require JWT
                         .anyRequest().authenticated()
