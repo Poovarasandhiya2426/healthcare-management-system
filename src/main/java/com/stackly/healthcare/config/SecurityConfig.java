@@ -1,6 +1,7 @@
 package com.stackly.healthcare.config;
 
 import com.stackly.healthcare.security.JwtAuthFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.annotation.Bean;
@@ -87,6 +88,16 @@ public class SecurityConfig {
 
                         // All other APIs require JWT
                         .anyRequest().authenticated()
+                )
+
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(
+                                (request, response, authException) ->
+                                        response.sendError(
+                                                HttpServletResponse.SC_UNAUTHORIZED,
+                                                "Unauthorized"
+                                        )
+                        )
                 )
 
                 .addFilterBefore(
