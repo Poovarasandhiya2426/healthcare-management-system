@@ -21,6 +21,10 @@ public interface PatientService {
 
     ApiResponse<List<PatientResponse>> searchPatients(String keyword);
 
-    ApiResponse<Page<PatientResponse>> getPatientsWithPagination(int page, int size);
-
+    ApiResponse<Page<PatientResponse>> getPatientsWithPagination(
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    );
 }

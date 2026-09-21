@@ -13,6 +13,7 @@ import com.stackly.healthcare.response.PatientResponse;
 import com.stackly.healthcare.service.PatientService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -149,19 +150,67 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public ApiResponse<Page<PatientResponse>> getPatientsWithPagination(int page, int size) {
+    public ApiResponse<Page<PatientResponse>> getPatientsWithPagination(
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
 
-        Pageable pageable = PageRequest.of(page, size);
+        // Validate page number
+        if (page < 0) {
+            throw new IllegalArgumentException(
+                    "Page number cannot be negative"
+            );
+        }
 
+        // Validate page size
+        if (size <= 0) {
+            throw new IllegalArgumentException(
+                    "Page size must be greater than zero"
+            );
+        }
+
+        Pageable pageable;
+
+        // Sorting is optional
+        if (sortBy != null && !sortBy.isBlank()) {
+
+            Sort sort = direction.equalsIgnoreCase("desc")
+                    ? Sort.by(sortBy).descending()
+                    : Sort.by(sortBy).ascending();
+
+            pageable = PageRequest.of(page, size, sort);
+
+        } else {
+
+            // No sorting
+            pageable = PageRequest.of(page, size);
+        }
+
+        // Fetch paginated patients
+        Page<Patient> patientPage =
+                patientRepository.findAll(pageable);
+
+        // Check whether requested page exists
+        if (patientPage.getTotalElements() > 0 &&
+                page >= patientPage.getTotalPages()) {
+
+            throw new ResourceNotFoundException(
+                    "Page " + page +
+                            " does not exist. Total pages available: " +
+                            patientPage.getTotalPages()
+            );
+        }
+
+        // Convert Entity to Response DTO
         Page<PatientResponse> patients =
-                patientRepository.findAll(pageable)
-                        .map(patientMapper::mapToResponse);
+                patientPage.map(patientMapper::mapToResponse);
 
+        // Return standard API response
         return ApiResponse.<Page<PatientResponse>>builder()
                 .success(true)
                 .message(AppConstants.PATIENT_LIST)
                 .data(patients)
                 .build();
-
     }
 }

@@ -81,13 +81,19 @@ public class PatientController {
 
             @RequestParam(defaultValue = "0") int page,
 
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+
+            @RequestParam(required = false) String sortBy,
+
+            @RequestParam(required = false) String direction) {
 
         return ResponseEntity.ok(
-
-                patientService.getPatientsWithPagination(page, size)
-
+                patientService.getPatientsWithPagination(
+                        page,
+                        size,
+                        sortBy,
+                        direction
+                )
         );
-
     }
 }
