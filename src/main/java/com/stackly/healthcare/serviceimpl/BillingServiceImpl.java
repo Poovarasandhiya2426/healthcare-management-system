@@ -1,6 +1,7 @@
 package com.stackly.healthcare.serviceimpl;
 
 import com.stackly.healthcare.common.ApiResponse;
+import com.stackly.healthcare.constants.AppConstants;
 import com.stackly.healthcare.entity.Billing;
 import com.stackly.healthcare.entity.Patient;
 import com.stackly.healthcare.exception.ResourceNotFoundException;
@@ -28,20 +29,25 @@ public class BillingServiceImpl implements BillingService {
     public ApiResponse<BillingResponse> createBilling(BillingRequest request) {
 
         Patient patient = patientRepository.findById(request.getPatientId())
-                .orElseThrow(() -> new ResourceNotFoundException("Patient Not Found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(AppConstants.PATIENT_NOT_FOUND));
 
         Double totalAmount = request.getConsultationFee()
                 + request.getMedicineCharge()
                 + request.getLabCharge()
                 + request.getOtherCharge();
 
-        Billing billing = billingMapper.mapToEntity(request, patient, totalAmount);
+        Billing billing = billingMapper.mapToEntity(
+                request,
+                patient,
+                totalAmount
+        );
 
         Billing savedBilling = billingRepository.save(billing);
 
         return ApiResponse.<BillingResponse>builder()
                 .success(true)
-                .message("Billing Created Successfully")
+                .message(AppConstants.BILLING_CREATED)
                 .data(billingMapper.mapToResponse(savedBilling))
                 .build();
     }
@@ -50,11 +56,12 @@ public class BillingServiceImpl implements BillingService {
     public ApiResponse<BillingResponse> getBillingById(Long billId) {
 
         Billing billing = billingRepository.findById(billId)
-                .orElseThrow(() -> new ResourceNotFoundException("Billing Not Found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(AppConstants.BILLING_NOT_FOUND));
 
         return ApiResponse.<BillingResponse>builder()
                 .success(true)
-                .message("Billing Retrieved Successfully")
+                .message(AppConstants.BILLING_FOUND)
                 .data(billingMapper.mapToResponse(billing))
                 .build();
     }
@@ -69,33 +76,41 @@ public class BillingServiceImpl implements BillingService {
 
         return ApiResponse.<List<BillingResponse>>builder()
                 .success(true)
-                .message("Billings Retrieved Successfully")
+                .message(AppConstants.BILLING_LIST)
                 .data(billings)
                 .build();
     }
 
     @Override
-    public ApiResponse<BillingResponse> updateBilling(Long billId,
-                                                      BillingRequest request) {
+    public ApiResponse<BillingResponse> updateBilling(
+            Long billId,
+            BillingRequest request) {
 
         Billing billing = billingRepository.findById(billId)
-                .orElseThrow(() -> new ResourceNotFoundException("Billing Not Found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(AppConstants.BILLING_NOT_FOUND));
 
         Patient patient = patientRepository.findById(request.getPatientId())
-                .orElseThrow(() -> new ResourceNotFoundException("Patient Not Found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(AppConstants.PATIENT_NOT_FOUND));
 
         Double totalAmount = request.getConsultationFee()
                 + request.getMedicineCharge()
                 + request.getLabCharge()
                 + request.getOtherCharge();
 
-        billingMapper.updateEntity(billing, request, patient, totalAmount);
+        billingMapper.updateEntity(
+                billing,
+                request,
+                patient,
+                totalAmount
+        );
 
         Billing updatedBilling = billingRepository.save(billing);
 
         return ApiResponse.<BillingResponse>builder()
                 .success(true)
-                .message("Billing Updated Successfully")
+                .message(AppConstants.BILLING_UPDATED)
                 .data(billingMapper.mapToResponse(updatedBilling))
                 .build();
     }
@@ -104,19 +119,21 @@ public class BillingServiceImpl implements BillingService {
     public ApiResponse<String> deleteBilling(Long billId) {
 
         Billing billing = billingRepository.findById(billId)
-                .orElseThrow(() -> new ResourceNotFoundException("Billing Not Found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(AppConstants.BILLING_NOT_FOUND));
 
         billingRepository.delete(billing);
 
         return ApiResponse.<String>builder()
                 .success(true)
-                .message("Billing Deleted Successfully")
-                .data("Billing Deleted Successfully")
+                .message(AppConstants.BILLING_DELETED)
+                .data(AppConstants.BILLING_DELETED)
                 .build();
     }
 
     @Override
-    public ApiResponse<List<BillingResponse>> getBillingsByPatientId(Long patientId) {
+    public ApiResponse<List<BillingResponse>> getBillingsByPatientId(
+            Long patientId) {
 
         List<BillingResponse> billings = billingRepository
                 .findByPatientPatientId(patientId)
@@ -126,7 +143,7 @@ public class BillingServiceImpl implements BillingService {
 
         return ApiResponse.<List<BillingResponse>>builder()
                 .success(true)
-                .message("Billings Retrieved Successfully")
+                .message(AppConstants.BILLING_LIST)
                 .data(billings)
                 .build();
     }
