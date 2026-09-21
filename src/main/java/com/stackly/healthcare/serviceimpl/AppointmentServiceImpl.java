@@ -32,18 +32,22 @@ public class AppointmentServiceImpl implements AppointmentService {
     public ApiResponse<AppointmentResponse> createAppointment(AppointmentRequest request) {
 
         Patient patient = patientRepository.findById(request.getPatientId())
-                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PATIENT_NOT_FOUND));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(AppConstants.PATIENT_NOT_FOUND));
 
         Doctor doctor = doctorRepository.findById(request.getDoctorId())
-                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.DOCTOR_NOT_FOUND));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(AppConstants.DOCTOR_NOT_FOUND));
 
-        Appointment appointment = appointmentMapper.mapToEntity(request, patient, doctor);
+        Appointment appointment =
+                appointmentMapper.mapToEntity(request, patient, doctor);
 
-        Appointment savedAppointment = appointmentRepository.save(appointment);
+        Appointment savedAppointment =
+                appointmentRepository.save(appointment);
 
         return ApiResponse.<AppointmentResponse>builder()
                 .success(true)
-                .message("Appointment Created Successfully")
+                .message(AppConstants.APPOINTMENT_CREATED)
                 .data(appointmentMapper.mapToResponse(savedAppointment))
                 .build();
     }
@@ -52,11 +56,12 @@ public class AppointmentServiceImpl implements AppointmentService {
     public ApiResponse<AppointmentResponse> getAppointmentById(Long appointmentId) {
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment Not Found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(AppConstants.APPOINTMENT_NOT_FOUND));
 
         return ApiResponse.<AppointmentResponse>builder()
                 .success(true)
-                .message("Appointment Retrieved Successfully")
+                .message(AppConstants.APPOINTMENT_FOUND)
                 .data(appointmentMapper.mapToResponse(appointment))
                 .build();
     }
@@ -71,30 +76,41 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         return ApiResponse.<List<AppointmentResponse>>builder()
                 .success(true)
-                .message("Appointments Retrieved Successfully")
+                .message(AppConstants.APPOINTMENT_LIST)
                 .data(appointments)
                 .build();
     }
 
     @Override
-    public ApiResponse<AppointmentResponse> updateAppointment(Long appointmentId, AppointmentRequest request) {
+    public ApiResponse<AppointmentResponse> updateAppointment(
+            Long appointmentId,
+            AppointmentRequest request) {
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment Not Found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(AppConstants.APPOINTMENT_NOT_FOUND));
 
         Patient patient = patientRepository.findById(request.getPatientId())
-                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PATIENT_NOT_FOUND));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(AppConstants.PATIENT_NOT_FOUND));
 
         Doctor doctor = doctorRepository.findById(request.getDoctorId())
-                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.DOCTOR_NOT_FOUND));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(AppConstants.DOCTOR_NOT_FOUND));
 
-        appointmentMapper.updateEntity(appointment, request, patient, doctor);
+        appointmentMapper.updateEntity(
+                appointment,
+                request,
+                patient,
+                doctor
+        );
 
-        Appointment updatedAppointment = appointmentRepository.save(appointment);
+        Appointment updatedAppointment =
+                appointmentRepository.save(appointment);
 
         return ApiResponse.<AppointmentResponse>builder()
                 .success(true)
-                .message("Appointment Updated Successfully")
+                .message(AppConstants.APPOINTMENT_UPDATED)
                 .data(appointmentMapper.mapToResponse(updatedAppointment))
                 .build();
     }
@@ -103,19 +119,21 @@ public class AppointmentServiceImpl implements AppointmentService {
     public ApiResponse<String> deleteAppointment(Long appointmentId) {
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment Not Found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(AppConstants.APPOINTMENT_NOT_FOUND));
 
         appointmentRepository.delete(appointment);
 
         return ApiResponse.<String>builder()
                 .success(true)
-                .message("Appointment Deleted Successfully")
-                .data("Appointment Deleted Successfully")
+                .message(AppConstants.APPOINTMENT_DELETED)
+                .data(AppConstants.APPOINTMENT_DELETED)
                 .build();
     }
 
     @Override
-    public ApiResponse<List<AppointmentResponse>> getAppointmentsByPatientId(Long patientId) {
+    public ApiResponse<List<AppointmentResponse>> getAppointmentsByPatientId(
+            Long patientId) {
 
         List<AppointmentResponse> appointments = appointmentRepository
                 .findByPatientPatientId(patientId)
@@ -125,13 +143,14 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         return ApiResponse.<List<AppointmentResponse>>builder()
                 .success(true)
-                .message("Patient Appointments Retrieved Successfully")
+                .message(AppConstants.APPOINTMENT_LIST)
                 .data(appointments)
                 .build();
     }
 
     @Override
-    public ApiResponse<List<AppointmentResponse>> getAppointmentsByDoctorId(Long doctorId) {
+    public ApiResponse<List<AppointmentResponse>> getAppointmentsByDoctorId(
+            Long doctorId) {
 
         List<AppointmentResponse> appointments = appointmentRepository
                 .findByDoctorDoctorId(doctorId)
@@ -141,7 +160,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         return ApiResponse.<List<AppointmentResponse>>builder()
                 .success(true)
-                .message("Doctor Appointments Retrieved Successfully")
+                .message(AppConstants.APPOINTMENT_LIST)
                 .data(appointments)
                 .build();
     }
@@ -160,6 +179,5 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .message(AppConstants.APPOINTMENT_LIST)
                 .data(appointments)
                 .build();
-
     }
 }
