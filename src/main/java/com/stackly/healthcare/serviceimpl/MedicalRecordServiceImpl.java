@@ -1,6 +1,7 @@
 package com.stackly.healthcare.serviceimpl;
 
 import com.stackly.healthcare.common.ApiResponse;
+import com.stackly.healthcare.constants.AppConstants;
 import com.stackly.healthcare.entity.MedicalRecord;
 import com.stackly.healthcare.entity.Patient;
 import com.stackly.healthcare.exception.ResourceNotFoundException;
@@ -25,31 +26,38 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     private final MedicalRecordMapper medicalRecordMapper;
 
     @Override
-    public ApiResponse<MedicalRecordResponse> createMedicalRecord(MedicalRecordRequest request) {
+    public ApiResponse<MedicalRecordResponse> createMedicalRecord(
+            MedicalRecordRequest request) {
 
         Patient patient = patientRepository.findById(request.getPatientId())
-                .orElseThrow(() -> new ResourceNotFoundException("Patient Not Found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(AppConstants.PATIENT_NOT_FOUND));
 
-        MedicalRecord medicalRecord = medicalRecordMapper.mapToEntity(request, patient);
+        MedicalRecord medicalRecord =
+                medicalRecordMapper.mapToEntity(request, patient);
 
-        MedicalRecord savedMedicalRecord = medicalRecordRepository.save(medicalRecord);
+        MedicalRecord savedMedicalRecord =
+                medicalRecordRepository.save(medicalRecord);
 
         return ApiResponse.<MedicalRecordResponse>builder()
                 .success(true)
-                .message("Medical Record Created Successfully")
+                .message(AppConstants.MEDICAL_RECORD_CREATED)
                 .data(medicalRecordMapper.mapToResponse(savedMedicalRecord))
                 .build();
     }
 
     @Override
-    public ApiResponse<MedicalRecordResponse> getMedicalRecordById(Long recordId) {
+    public ApiResponse<MedicalRecordResponse> getMedicalRecordById(
+            Long recordId) {
 
         MedicalRecord medicalRecord = medicalRecordRepository.findById(recordId)
-                .orElseThrow(() -> new ResourceNotFoundException("Medical Record Not Found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                AppConstants.MEDICAL_RECORD_NOT_FOUND));
 
         return ApiResponse.<MedicalRecordResponse>builder()
                 .success(true)
-                .message("Medical Record Retrieved Successfully")
+                .message(AppConstants.MEDICAL_RECORD_FOUND)
                 .data(medicalRecordMapper.mapToResponse(medicalRecord))
                 .build();
     }
@@ -57,35 +65,47 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     @Override
     public ApiResponse<List<MedicalRecordResponse>> getAllMedicalRecords() {
 
-        List<MedicalRecordResponse> medicalRecords = medicalRecordRepository.findAll()
-                .stream()
-                .map(medicalRecordMapper::mapToResponse)
-                .collect(Collectors.toList());
+        List<MedicalRecordResponse> medicalRecords =
+                medicalRecordRepository.findAll()
+                        .stream()
+                        .map(medicalRecordMapper::mapToResponse)
+                        .collect(Collectors.toList());
 
         return ApiResponse.<List<MedicalRecordResponse>>builder()
                 .success(true)
-                .message("Medical Records Retrieved Successfully")
+                .message(AppConstants.MEDICAL_RECORD_LIST)
                 .data(medicalRecords)
                 .build();
     }
 
     @Override
-    public ApiResponse<MedicalRecordResponse> updateMedicalRecord(Long recordId,
-                                                                  MedicalRecordRequest request) {
+    public ApiResponse<MedicalRecordResponse> updateMedicalRecord(
+            Long recordId,
+            MedicalRecordRequest request) {
 
-        MedicalRecord medicalRecord = medicalRecordRepository.findById(recordId)
-                .orElseThrow(() -> new ResourceNotFoundException("Medical Record Not Found"));
+        MedicalRecord medicalRecord =
+                medicalRecordRepository.findById(recordId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        AppConstants.MEDICAL_RECORD_NOT_FOUND));
 
         Patient patient = patientRepository.findById(request.getPatientId())
-                .orElseThrow(() -> new ResourceNotFoundException("Patient Not Found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                AppConstants.PATIENT_NOT_FOUND));
 
-        medicalRecordMapper.updateEntity(medicalRecord, request, patient);
+        medicalRecordMapper.updateEntity(
+                medicalRecord,
+                request,
+                patient
+        );
 
-        MedicalRecord updatedMedicalRecord = medicalRecordRepository.save(medicalRecord);
+        MedicalRecord updatedMedicalRecord =
+                medicalRecordRepository.save(medicalRecord);
 
         return ApiResponse.<MedicalRecordResponse>builder()
                 .success(true)
-                .message("Medical Record Updated Successfully")
+                .message(AppConstants.MEDICAL_RECORD_UPDATED)
                 .data(medicalRecordMapper.mapToResponse(updatedMedicalRecord))
                 .build();
     }
@@ -93,30 +113,35 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     @Override
     public ApiResponse<String> deleteMedicalRecord(Long recordId) {
 
-        MedicalRecord medicalRecord = medicalRecordRepository.findById(recordId)
-                .orElseThrow(() -> new ResourceNotFoundException("Medical Record Not Found"));
+        MedicalRecord medicalRecord =
+                medicalRecordRepository.findById(recordId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        AppConstants.MEDICAL_RECORD_NOT_FOUND));
 
         medicalRecordRepository.delete(medicalRecord);
 
         return ApiResponse.<String>builder()
                 .success(true)
-                .message("Medical Record Deleted Successfully")
-                .data("Medical Record Deleted Successfully")
+                .message(AppConstants.MEDICAL_RECORD_DELETED)
+                .data(AppConstants.MEDICAL_RECORD_DELETED)
                 .build();
     }
 
     @Override
-    public ApiResponse<List<MedicalRecordResponse>> getMedicalRecordsByPatientId(Long patientId) {
+    public ApiResponse<List<MedicalRecordResponse>> getMedicalRecordsByPatientId(
+            Long patientId) {
 
-        List<MedicalRecordResponse> medicalRecords = medicalRecordRepository
-                .findByPatientPatientId(patientId)
-                .stream()
-                .map(medicalRecordMapper::mapToResponse)
-                .collect(Collectors.toList());
+        List<MedicalRecordResponse> medicalRecords =
+                medicalRecordRepository
+                        .findByPatientPatientId(patientId)
+                        .stream()
+                        .map(medicalRecordMapper::mapToResponse)
+                        .collect(Collectors.toList());
 
         return ApiResponse.<List<MedicalRecordResponse>>builder()
                 .success(true)
-                .message("Medical Records Retrieved Successfully")
+                .message(AppConstants.MEDICAL_RECORD_LIST)
                 .data(medicalRecords)
                 .build();
     }
