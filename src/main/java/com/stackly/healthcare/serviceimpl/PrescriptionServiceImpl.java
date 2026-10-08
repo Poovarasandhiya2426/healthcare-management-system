@@ -11,6 +11,7 @@ import com.stackly.healthcare.repository.PrescriptionRepository;
 import com.stackly.healthcare.request.PrescriptionRequest;
 import com.stackly.healthcare.response.PrescriptionResponse;
 import com.stackly.healthcare.service.PrescriptionService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     private final PrescriptionMapper prescriptionMapper;
 
     @Override
+    @Transactional
     public ApiResponse<PrescriptionResponse> createPrescription(
             PrescriptionRequest request) {
 
@@ -127,6 +129,7 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<PrescriptionResponse> updatePrescription(
             Long prescriptionId,
             PrescriptionRequest request) {
@@ -186,6 +189,7 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> deletePrescription(Long prescriptionId) {
 
         log.info(
