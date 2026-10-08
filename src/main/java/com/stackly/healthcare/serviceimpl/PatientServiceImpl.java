@@ -34,7 +34,12 @@ public class PatientServiceImpl implements PatientService {
     private final PatientMapper patientMapper;
     private final AppointmentRepository appointmentRepository;
 
+
+    // =========================
+    // CREATE PATIENT
+    // =========================
     @Override
+    @Transactional
     public ApiResponse<PatientResponse> createPatient(PatientRequest request) {
 
         log.info("Creating patient with email: {}", request.getEmail());
@@ -73,6 +78,10 @@ public class PatientServiceImpl implements PatientService {
                 .build();
     }
 
+
+    // =========================
+    // GET PATIENT BY ID
+    // =========================
     @Override
     @Cacheable(value = "patients", key = "#patientId")
     public ApiResponse<PatientResponse> getPatientById(Long patientId) {
@@ -98,6 +107,10 @@ public class PatientServiceImpl implements PatientService {
                 .build();
     }
 
+
+    // =========================
+    // GET ALL PATIENTS
+    // =========================
     @Override
     public ApiResponse<List<PatientResponse>> getAllPatients() {
 
@@ -117,7 +130,12 @@ public class PatientServiceImpl implements PatientService {
                 .build();
     }
 
+
+    // =========================
+    // UPDATE PATIENT
+    // =========================
     @Override
+    @Transactional
     @CacheEvict(value = "patients", key = "#patientId")
     public ApiResponse<PatientResponse> updatePatient(
             Long patientId,
@@ -128,8 +146,10 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> {
 
-                    log.warn("Patient update failed. Patient not found with ID: {}",
-                            patientId);
+                    log.warn(
+                            "Patient update failed. Patient not found with ID: {}",
+                            patientId
+                    );
 
                     return new ResourceNotFoundException(
                             AppConstants.PATIENT_NOT_FOUND
@@ -148,10 +168,13 @@ public class PatientServiceImpl implements PatientService {
         }
 
         if (!patient.getMobileNumber().equals(request.getMobileNumber())
-                && patientRepository.existsByMobileNumber(request.getMobileNumber())) {
+                && patientRepository.existsByMobileNumber(
+                request.getMobileNumber())) {
 
-            log.warn("Patient update failed. Mobile number already exists: {}",
-                    request.getMobileNumber());
+            log.warn(
+                    "Patient update failed. Mobile number already exists: {}",
+                    request.getMobileNumber()
+            );
 
             throw new DuplicateResourceException(
                     AppConstants.MOBILE_ALREADY_EXISTS
@@ -172,9 +195,13 @@ public class PatientServiceImpl implements PatientService {
                 .build();
     }
 
+
+    // =========================
+    // DELETE PATIENT
+    // =========================
     @Override
-    @CacheEvict(value = "patients", key = "#patientId")
     @Transactional
+    @CacheEvict(value = "patients", key = "#patientId")
     public ApiResponse<String> deletePatient(Long patientId) {
 
         log.info("Deleting patient with ID: {}", patientId);
@@ -182,8 +209,10 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> {
 
-                    log.warn("Patient deletion failed. Patient not found with ID: {}",
-                            patientId);
+                    log.warn(
+                            "Patient deletion failed. Patient not found with ID: {}",
+                            patientId
+                    );
 
                     return new ResourceNotFoundException(
                             AppConstants.PATIENT_NOT_FOUND
@@ -213,15 +242,20 @@ public class PatientServiceImpl implements PatientService {
                 .build();
     }
 
+
+    // =========================
+    // SEARCH PATIENTS
+    // =========================
     @Override
     public ApiResponse<List<PatientResponse>> searchPatients(String keyword) {
 
         log.info("Searching patients with keyword: {}", keyword);
 
-        List<PatientResponse> patients = patientRepository.searchPatients(keyword)
-                .stream()
-                .map(patientMapper::mapToResponse)
-                .collect(Collectors.toList());
+        List<PatientResponse> patients =
+                patientRepository.searchPatients(keyword)
+                        .stream()
+                        .map(patientMapper::mapToResponse)
+                        .collect(Collectors.toList());
 
         log.info("Patient search completed. {} patients found",
                 patients.size());
@@ -233,6 +267,10 @@ public class PatientServiceImpl implements PatientService {
                 .build();
     }
 
+
+    // =========================
+    // PAGINATION + SORTING
+    // =========================
     @Override
     public ApiResponse<Page<PatientResponse>> getPatientsWithPagination(
             int page,
