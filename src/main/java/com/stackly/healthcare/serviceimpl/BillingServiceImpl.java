@@ -11,6 +11,7 @@ import com.stackly.healthcare.repository.PatientRepository;
 import com.stackly.healthcare.request.BillingRequest;
 import com.stackly.healthcare.response.BillingResponse;
 import com.stackly.healthcare.service.BillingService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class BillingServiceImpl implements BillingService {
     private final BillingMapper billingMapper;
 
     @Override
+    @Transactional
     public ApiResponse<BillingResponse> createBilling(
             BillingRequest request) {
 
@@ -134,6 +136,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<BillingResponse> updateBilling(
             Long billId,
             BillingRequest request) {
@@ -202,6 +205,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> deleteBilling(Long billId) {
 
         log.info(
