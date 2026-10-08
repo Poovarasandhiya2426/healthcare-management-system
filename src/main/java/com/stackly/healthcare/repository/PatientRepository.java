@@ -26,16 +26,36 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
      */
     Optional<Patient> findByEmail(String email);
 
+    /**
+     * JPQL Query
+     * Uses Entity and Java field names.
+     */
     @Query("""
-SELECT p
-FROM Patient p
-WHERE
-LOWER(p.firstName) LIKE LOWER(CONCAT('%', :keyword, '%'))
-OR
-LOWER(p.lastName) LIKE LOWER(CONCAT('%', :keyword, '%'))
-OR
-p.mobileNumber LIKE CONCAT('%', :keyword, '%')
-""")
+            SELECT p
+            FROM Patient p
+            WHERE
+            LOWER(p.firstName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR
+            LOWER(p.lastName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR
+            p.mobileNumber LIKE CONCAT('%', :keyword, '%')
+            """)
     List<Patient> searchPatients(String keyword);
+
+    /**
+     * Native SQL Query
+     * Uses actual database table and column names.
+     */
+    @Query(value = """
+            SELECT *
+            FROM patients
+            WHERE
+            LOWER(first_name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR
+            LOWER(last_name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR
+            mobile_number LIKE CONCAT('%', :keyword, '%')
+            """, nativeQuery = true)
+    List<Patient> searchPatientsNative(String keyword);
 
 }

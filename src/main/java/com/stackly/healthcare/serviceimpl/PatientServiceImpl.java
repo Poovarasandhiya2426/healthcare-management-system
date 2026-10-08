@@ -13,15 +13,17 @@ import com.stackly.healthcare.response.PatientResponse;
 import com.stackly.healthcare.service.PatientService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PatientServiceImpl implements PatientService {
@@ -33,17 +35,34 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public ApiResponse<PatientResponse> createPatient(PatientRequest request) {
 
+        log.info("Creating patient with email: {}", request.getEmail());
+
         if (patientRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException(AppConstants.EMAIL_ALREADY_EXISTS);
+
+            log.warn("Patient creation failed. Email already exists: {}",
+                    request.getEmail());
+
+            throw new DuplicateResourceException(
+                    AppConstants.EMAIL_ALREADY_EXISTS
+            );
         }
 
         if (patientRepository.existsByMobileNumber(request.getMobileNumber())) {
-            throw new DuplicateResourceException(AppConstants.MOBILE_ALREADY_EXISTS);
+
+            log.warn("Patient creation failed. Mobile number already exists: {}",
+                    request.getMobileNumber());
+
+            throw new DuplicateResourceException(
+                    AppConstants.MOBILE_ALREADY_EXISTS
+            );
         }
 
         Patient patient = patientMapper.mapToEntity(request);
 
         Patient savedPatient = patientRepository.save(patient);
+
+        log.info("Patient created successfully with ID: {}",
+                savedPatient.getPatientId());
 
         return ApiResponse.<PatientResponse>builder()
                 .success(true)
@@ -55,8 +74,19 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public ApiResponse<PatientResponse> getPatientById(Long patientId) {
 
+        log.info("Fetching patient with ID: {}", patientId);
+
         Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PATIENT_NOT_FOUND));
+                .orElseThrow(() -> {
+
+                    log.warn("Patient not found with ID: {}", patientId);
+
+                    return new ResourceNotFoundException(
+                            AppConstants.PATIENT_NOT_FOUND
+                    );
+                });
+
+        log.info("Patient found successfully with ID: {}", patientId);
 
         return ApiResponse.<PatientResponse>builder()
                 .success(true)
@@ -68,10 +98,14 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public ApiResponse<List<PatientResponse>> getAllPatients() {
 
+        log.info("Fetching all patients");
+
         List<PatientResponse> patients = patientRepository.findAll()
                 .stream()
                 .map(patientMapper::mapToResponse)
                 .collect(Collectors.toList());
+
+        log.info("Successfully fetched {} patients", patients.size());
 
         return ApiResponse.<List<PatientResponse>>builder()
                 .success(true)
@@ -81,24 +115,51 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public ApiResponse<PatientResponse> updatePatient(Long patientId, PatientRequest request) {
+    public ApiResponse<PatientResponse> updatePatient(
+            Long patientId,
+            PatientRequest request) {
+
+        log.info("Updating patient with ID: {}", patientId);
 
         Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PATIENT_NOT_FOUND));
+                .orElseThrow(() -> {
+
+                    log.warn("Patient update failed. Patient not found with ID: {}",
+                            patientId);
+
+                    return new ResourceNotFoundException(
+                            AppConstants.PATIENT_NOT_FOUND
+                    );
+                });
 
         if (!patient.getEmail().equals(request.getEmail())
                 && patientRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException(AppConstants.EMAIL_ALREADY_EXISTS);
+
+            log.warn("Patient update failed. Email already exists: {}",
+                    request.getEmail());
+
+            throw new DuplicateResourceException(
+                    AppConstants.EMAIL_ALREADY_EXISTS
+            );
         }
 
         if (!patient.getMobileNumber().equals(request.getMobileNumber())
                 && patientRepository.existsByMobileNumber(request.getMobileNumber())) {
-            throw new DuplicateResourceException(AppConstants.MOBILE_ALREADY_EXISTS);
+
+            log.warn("Patient update failed. Mobile number already exists: {}",
+                    request.getMobileNumber());
+
+            throw new DuplicateResourceException(
+                    AppConstants.MOBILE_ALREADY_EXISTS
+            );
         }
 
         patientMapper.updateEntity(request, patient);
 
         Patient updatedPatient = patientRepository.save(patient);
+
+        log.info("Patient updated successfully with ID: {}",
+                updatedPatient.getPatientId());
 
         return ApiResponse.<PatientResponse>builder()
                 .success(true)
@@ -111,42 +172,60 @@ public class PatientServiceImpl implements PatientService {
     @Transactional
     public ApiResponse<String> deletePatient(Long patientId) {
 
+        log.info("Deleting patient with ID: {}", patientId);
+
         Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(AppConstants.PATIENT_NOT_FOUND));
+                .orElseThrow(() -> {
+
+                    log.warn("Patient deletion failed. Patient not found with ID: {}",
+                            patientId);
+
+                    return new ResourceNotFoundException(
+                            AppConstants.PATIENT_NOT_FOUND
+                    );
+                });
 
         if (appointmentRepository.existsByPatientPatientId(patientId)) {
+
+            log.warn(
+                    "Patient deletion blocked. Appointments exist for patient ID: {}",
+                    patientId
+            );
 
             throw new IllegalStateException(
                     "Cannot delete patient because appointments exist."
             );
-
         }
 
         patientRepository.delete(patient);
+
+        log.info("Patient deleted successfully with ID: {}", patientId);
 
         return ApiResponse.<String>builder()
                 .success(true)
                 .message(AppConstants.PATIENT_DELETED)
                 .data("Patient Deleted Successfully")
                 .build();
-
     }
 
     @Override
     public ApiResponse<List<PatientResponse>> searchPatients(String keyword) {
+
+        log.info("Searching patients with keyword: {}", keyword);
 
         List<PatientResponse> patients = patientRepository.searchPatients(keyword)
                 .stream()
                 .map(patientMapper::mapToResponse)
                 .collect(Collectors.toList());
 
+        log.info("Patient search completed. {} patients found",
+                patients.size());
+
         return ApiResponse.<List<PatientResponse>>builder()
                 .success(true)
                 .message(AppConstants.PATIENT_LIST)
                 .data(patients)
                 .build();
-
     }
 
     @Override
@@ -156,15 +235,27 @@ public class PatientServiceImpl implements PatientService {
             String sortBy,
             String direction) {
 
-        // Validate page number
+        log.info(
+                "Fetching patients with pagination. page={}, size={}, sortBy={}, direction={}",
+                page,
+                size,
+                sortBy,
+                direction
+        );
+
         if (page < 0) {
+
+            log.warn("Invalid page number: {}", page);
+
             throw new IllegalArgumentException(
                     "Page number cannot be negative"
             );
         }
 
-        // Validate page size
         if (size <= 0) {
+
+            log.warn("Invalid page size: {}", size);
+
             throw new IllegalArgumentException(
                     "Page size must be greater than zero"
             );
@@ -172,10 +263,10 @@ public class PatientServiceImpl implements PatientService {
 
         Pageable pageable;
 
-        // Sorting is optional
         if (sortBy != null && !sortBy.isBlank()) {
 
-            Sort sort = direction.equalsIgnoreCase("desc")
+            Sort sort = direction != null
+                    && direction.equalsIgnoreCase("desc")
                     ? Sort.by(sortBy).descending()
                     : Sort.by(sortBy).ascending();
 
@@ -183,17 +274,20 @@ public class PatientServiceImpl implements PatientService {
 
         } else {
 
-            // No sorting
             pageable = PageRequest.of(page, size);
         }
 
-        // Fetch paginated patients
         Page<Patient> patientPage =
                 patientRepository.findAll(pageable);
 
-        // Check whether requested page exists
-        if (patientPage.getTotalElements() > 0 &&
-                page >= patientPage.getTotalPages()) {
+        if (patientPage.getTotalElements() > 0
+                && page >= patientPage.getTotalPages()) {
+
+            log.warn(
+                    "Requested page {} does not exist. Total pages available: {}",
+                    page,
+                    patientPage.getTotalPages()
+            );
 
             throw new ResourceNotFoundException(
                     "Page " + page +
@@ -202,11 +296,15 @@ public class PatientServiceImpl implements PatientService {
             );
         }
 
-        // Convert Entity to Response DTO
         Page<PatientResponse> patients =
                 patientPage.map(patientMapper::mapToResponse);
 
-        // Return standard API response
+        log.info(
+                "Pagination completed successfully. Page={}, Records={}",
+                page,
+                patients.getNumberOfElements()
+        );
+
         return ApiResponse.<Page<PatientResponse>>builder()
                 .success(true)
                 .message(AppConstants.PATIENT_LIST)

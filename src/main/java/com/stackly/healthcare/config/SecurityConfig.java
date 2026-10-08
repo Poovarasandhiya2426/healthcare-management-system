@@ -50,6 +50,8 @@ public class SecurityConfig {
                                 "/**"
                         ).permitAll()
 
+                        .requestMatchers("/actuator/health").permitAll()
+
                         // Admin APIs
                         .requestMatchers(
                                 "/api/admin/**"
