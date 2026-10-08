@@ -10,6 +10,7 @@ import com.stackly.healthcare.repository.DoctorRepository;
 import com.stackly.healthcare.request.DoctorRequest;
 import com.stackly.healthcare.response.DoctorResponse;
 import com.stackly.healthcare.service.DoctorService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class DoctorServiceImpl implements DoctorService {
     private final DoctorMapper doctorMapper;
 
     @Override
+    @Transactional
     public ApiResponse<DoctorResponse> createDoctor(DoctorRequest request) {
 
         log.info("Creating doctor with email: {}", request.getEmail());
@@ -108,6 +110,7 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<DoctorResponse> updateDoctor(
             Long doctorId,
             DoctorRequest request) {
@@ -162,6 +165,7 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> deleteDoctor(Long doctorId) {
 
         log.info("Deleting doctor with ID: {}", doctorId);
