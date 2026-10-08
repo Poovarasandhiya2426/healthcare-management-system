@@ -12,11 +12,13 @@ import com.stackly.healthcare.request.BillingRequest;
 import com.stackly.healthcare.response.BillingResponse;
 import com.stackly.healthcare.service.BillingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BillingServiceImpl implements BillingService {
@@ -26,16 +28,37 @@ public class BillingServiceImpl implements BillingService {
     private final BillingMapper billingMapper;
 
     @Override
-    public ApiResponse<BillingResponse> createBilling(BillingRequest request) {
+    public ApiResponse<BillingResponse> createBilling(
+            BillingRequest request) {
+
+        log.info(
+                "Creating billing for patient ID: {}",
+                request.getPatientId()
+        );
 
         Patient patient = patientRepository.findById(request.getPatientId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(AppConstants.PATIENT_NOT_FOUND));
+                .orElseThrow(() -> {
+
+                    log.warn(
+                            "Billing creation failed. Patient not found with ID: {}",
+                            request.getPatientId()
+                    );
+
+                    return new ResourceNotFoundException(
+                            AppConstants.PATIENT_NOT_FOUND
+                    );
+                });
 
         Double totalAmount = request.getConsultationFee()
                 + request.getMedicineCharge()
                 + request.getLabCharge()
                 + request.getOtherCharge();
+
+        log.info(
+                "Calculated total billing amount: {} for patient ID: {}",
+                totalAmount,
+                request.getPatientId()
+        );
 
         Billing billing = billingMapper.mapToEntity(
                 request,
@@ -44,6 +67,11 @@ public class BillingServiceImpl implements BillingService {
         );
 
         Billing savedBilling = billingRepository.save(billing);
+
+        log.info(
+                "Billing created successfully with ID: {}",
+                savedBilling.getBillId()
+        );
 
         return ApiResponse.<BillingResponse>builder()
                 .success(true)
@@ -55,9 +83,25 @@ public class BillingServiceImpl implements BillingService {
     @Override
     public ApiResponse<BillingResponse> getBillingById(Long billId) {
 
+        log.info("Fetching billing with ID: {}", billId);
+
         Billing billing = billingRepository.findById(billId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(AppConstants.BILLING_NOT_FOUND));
+                .orElseThrow(() -> {
+
+                    log.warn(
+                            "Billing not found with ID: {}",
+                            billId
+                    );
+
+                    return new ResourceNotFoundException(
+                            AppConstants.BILLING_NOT_FOUND
+                    );
+                });
+
+        log.info(
+                "Billing found successfully with ID: {}",
+                billId
+        );
 
         return ApiResponse.<BillingResponse>builder()
                 .success(true)
@@ -69,10 +113,18 @@ public class BillingServiceImpl implements BillingService {
     @Override
     public ApiResponse<List<BillingResponse>> getAllBillings() {
 
-        List<BillingResponse> billings = billingRepository.findAll()
-                .stream()
-                .map(billingMapper::mapToResponse)
-                .collect(Collectors.toList());
+        log.info("Fetching all billings");
+
+        List<BillingResponse> billings =
+                billingRepository.findAll()
+                        .stream()
+                        .map(billingMapper::mapToResponse)
+                        .collect(Collectors.toList());
+
+        log.info(
+                "Successfully fetched {} billings",
+                billings.size()
+        );
 
         return ApiResponse.<List<BillingResponse>>builder()
                 .success(true)
@@ -86,18 +138,47 @@ public class BillingServiceImpl implements BillingService {
             Long billId,
             BillingRequest request) {
 
+        log.info(
+                "Updating billing with ID: {}",
+                billId
+        );
+
         Billing billing = billingRepository.findById(billId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(AppConstants.BILLING_NOT_FOUND));
+                .orElseThrow(() -> {
+
+                    log.warn(
+                            "Billing update failed. Billing not found with ID: {}",
+                            billId
+                    );
+
+                    return new ResourceNotFoundException(
+                            AppConstants.BILLING_NOT_FOUND
+                    );
+                });
 
         Patient patient = patientRepository.findById(request.getPatientId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(AppConstants.PATIENT_NOT_FOUND));
+                .orElseThrow(() -> {
+
+                    log.warn(
+                            "Billing update failed. Patient not found with ID: {}",
+                            request.getPatientId()
+                    );
+
+                    return new ResourceNotFoundException(
+                            AppConstants.PATIENT_NOT_FOUND
+                    );
+                });
 
         Double totalAmount = request.getConsultationFee()
                 + request.getMedicineCharge()
                 + request.getLabCharge()
                 + request.getOtherCharge();
+
+        log.info(
+                "Recalculated total billing amount: {} for billing ID: {}",
+                totalAmount,
+                billId
+        );
 
         billingMapper.updateEntity(
                 billing,
@@ -107,6 +188,11 @@ public class BillingServiceImpl implements BillingService {
         );
 
         Billing updatedBilling = billingRepository.save(billing);
+
+        log.info(
+                "Billing updated successfully with ID: {}",
+                updatedBilling.getBillId()
+        );
 
         return ApiResponse.<BillingResponse>builder()
                 .success(true)
@@ -118,11 +204,30 @@ public class BillingServiceImpl implements BillingService {
     @Override
     public ApiResponse<String> deleteBilling(Long billId) {
 
+        log.info(
+                "Deleting billing with ID: {}",
+                billId
+        );
+
         Billing billing = billingRepository.findById(billId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(AppConstants.BILLING_NOT_FOUND));
+                .orElseThrow(() -> {
+
+                    log.warn(
+                            "Billing deletion failed. Billing not found with ID: {}",
+                            billId
+                    );
+
+                    return new ResourceNotFoundException(
+                            AppConstants.BILLING_NOT_FOUND
+                    );
+                });
 
         billingRepository.delete(billing);
+
+        log.info(
+                "Billing deleted successfully with ID: {}",
+                billId
+        );
 
         return ApiResponse.<String>builder()
                 .success(true)
@@ -135,11 +240,23 @@ public class BillingServiceImpl implements BillingService {
     public ApiResponse<List<BillingResponse>> getBillingsByPatientId(
             Long patientId) {
 
-        List<BillingResponse> billings = billingRepository
-                .findByPatientPatientId(patientId)
-                .stream()
-                .map(billingMapper::mapToResponse)
-                .collect(Collectors.toList());
+        log.info(
+                "Fetching billings for patient ID: {}",
+                patientId
+        );
+
+        List<BillingResponse> billings =
+                billingRepository
+                        .findByPatientPatientId(patientId)
+                        .stream()
+                        .map(billingMapper::mapToResponse)
+                        .collect(Collectors.toList());
+
+        log.info(
+                "Found {} billings for patient ID: {}",
+                billings.size(),
+                patientId
+        );
 
         return ApiResponse.<List<BillingResponse>>builder()
                 .success(true)

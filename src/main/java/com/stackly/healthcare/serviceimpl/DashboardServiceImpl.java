@@ -9,8 +9,10 @@ import com.stackly.healthcare.common.ApiResponse;
 import com.stackly.healthcare.response.DashboardResponse;
 import com.stackly.healthcare.service.DashboardService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DashboardServiceImpl implements DashboardService {
@@ -26,6 +28,8 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public ApiResponse<DashboardResponse> getDashboardSummary() {
 
+        log.info("Fetching dashboard summary");
+
         Long totalPatients = patientRepository.count();
 
         Long totalDoctors = doctorRepository.count();
@@ -36,8 +40,9 @@ public class DashboardServiceImpl implements DashboardService {
 
         if (totalRevenue == null) {
 
-            totalRevenue = 0.0;
+            log.info("No billing revenue found. Setting total revenue to 0.0");
 
+            totalRevenue = 0.0;
         }
 
         DashboardResponse dashboardResponse =
@@ -48,12 +53,18 @@ public class DashboardServiceImpl implements DashboardService {
                         .totalRevenue(totalRevenue)
                         .build();
 
+        log.info(
+                "Dashboard summary retrieved successfully. Patients: {}, Doctors: {}, Appointments: {}, Revenue: {}",
+                totalPatients,
+                totalDoctors,
+                totalAppointments,
+                totalRevenue
+        );
+
         return ApiResponse.<DashboardResponse>builder()
                 .success(true)
                 .message(AppConstants.DASHBOARD_RETRIEVED)
                 .data(dashboardResponse)
                 .build();
-
     }
-
 }

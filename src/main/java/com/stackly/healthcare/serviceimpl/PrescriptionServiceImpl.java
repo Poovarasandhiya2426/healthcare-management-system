@@ -12,11 +12,13 @@ import com.stackly.healthcare.request.PrescriptionRequest;
 import com.stackly.healthcare.response.PrescriptionResponse;
 import com.stackly.healthcare.service.PrescriptionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PrescriptionServiceImpl implements PrescriptionService {
@@ -26,15 +28,38 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     private final PrescriptionMapper prescriptionMapper;
 
     @Override
-    public ApiResponse<PrescriptionResponse> createPrescription(PrescriptionRequest request) {
+    public ApiResponse<PrescriptionResponse> createPrescription(
+            PrescriptionRequest request) {
 
-        Appointment appointment = appointmentRepository.findById(request.getAppointmentId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(AppConstants.APPOINTMENT_NOT_FOUND));
+        log.info(
+                "Creating prescription for appointment ID: {}",
+                request.getAppointmentId()
+        );
 
-        Prescription prescription = prescriptionMapper.mapToEntity(request, appointment);
+        Appointment appointment =
+                appointmentRepository.findById(request.getAppointmentId())
+                        .orElseThrow(() -> {
 
-        Prescription savedPrescription = prescriptionRepository.save(prescription);
+                            log.warn(
+                                    "Prescription creation failed. Appointment not found with ID: {}",
+                                    request.getAppointmentId()
+                            );
+
+                            return new ResourceNotFoundException(
+                                    AppConstants.APPOINTMENT_NOT_FOUND
+                            );
+                        });
+
+        Prescription prescription =
+                prescriptionMapper.mapToEntity(request, appointment);
+
+        Prescription savedPrescription =
+                prescriptionRepository.save(prescription);
+
+        log.info(
+                "Prescription created successfully with ID: {}",
+                savedPrescription.getPrescriptionId()
+        );
 
         return ApiResponse.<PrescriptionResponse>builder()
                 .success(true)
@@ -44,11 +69,32 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     }
 
     @Override
-    public ApiResponse<PrescriptionResponse> getPrescriptionById(Long prescriptionId) {
+    public ApiResponse<PrescriptionResponse> getPrescriptionById(
+            Long prescriptionId) {
 
-        Prescription prescription = prescriptionRepository.findById(prescriptionId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(AppConstants.PRESCRIPTION_NOT_FOUND));
+        log.info(
+                "Fetching prescription with ID: {}",
+                prescriptionId
+        );
+
+        Prescription prescription =
+                prescriptionRepository.findById(prescriptionId)
+                        .orElseThrow(() -> {
+
+                            log.warn(
+                                    "Prescription not found with ID: {}",
+                                    prescriptionId
+                            );
+
+                            return new ResourceNotFoundException(
+                                    AppConstants.PRESCRIPTION_NOT_FOUND
+                            );
+                        });
+
+        log.info(
+                "Prescription found successfully with ID: {}",
+                prescriptionId
+        );
 
         return ApiResponse.<PrescriptionResponse>builder()
                 .success(true)
@@ -60,10 +106,18 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     @Override
     public ApiResponse<List<PrescriptionResponse>> getAllPrescriptions() {
 
-        List<PrescriptionResponse> prescriptions = prescriptionRepository.findAll()
-                .stream()
-                .map(prescriptionMapper::mapToResponse)
-                .collect(Collectors.toList());
+        log.info("Fetching all prescriptions");
+
+        List<PrescriptionResponse> prescriptions =
+                prescriptionRepository.findAll()
+                        .stream()
+                        .map(prescriptionMapper::mapToResponse)
+                        .collect(Collectors.toList());
+
+        log.info(
+                "Successfully fetched {} prescriptions",
+                prescriptions.size()
+        );
 
         return ApiResponse.<List<PrescriptionResponse>>builder()
                 .success(true)
@@ -77,13 +131,38 @@ public class PrescriptionServiceImpl implements PrescriptionService {
             Long prescriptionId,
             PrescriptionRequest request) {
 
-        Prescription prescription = prescriptionRepository.findById(prescriptionId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(AppConstants.PRESCRIPTION_NOT_FOUND));
+        log.info(
+                "Updating prescription with ID: {}",
+                prescriptionId
+        );
 
-        Appointment appointment = appointmentRepository.findById(request.getAppointmentId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(AppConstants.APPOINTMENT_NOT_FOUND));
+        Prescription prescription =
+                prescriptionRepository.findById(prescriptionId)
+                        .orElseThrow(() -> {
+
+                            log.warn(
+                                    "Prescription update failed. Prescription not found with ID: {}",
+                                    prescriptionId
+                            );
+
+                            return new ResourceNotFoundException(
+                                    AppConstants.PRESCRIPTION_NOT_FOUND
+                            );
+                        });
+
+        Appointment appointment =
+                appointmentRepository.findById(request.getAppointmentId())
+                        .orElseThrow(() -> {
+
+                            log.warn(
+                                    "Prescription update failed. Appointment not found with ID: {}",
+                                    request.getAppointmentId()
+                            );
+
+                            return new ResourceNotFoundException(
+                                    AppConstants.APPOINTMENT_NOT_FOUND
+                            );
+                        });
 
         prescriptionMapper.updateEntity(
                 prescription,
@@ -93,6 +172,11 @@ public class PrescriptionServiceImpl implements PrescriptionService {
 
         Prescription updatedPrescription =
                 prescriptionRepository.save(prescription);
+
+        log.info(
+                "Prescription updated successfully with ID: {}",
+                updatedPrescription.getPrescriptionId()
+        );
 
         return ApiResponse.<PrescriptionResponse>builder()
                 .success(true)
@@ -104,11 +188,31 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     @Override
     public ApiResponse<String> deletePrescription(Long prescriptionId) {
 
-        Prescription prescription = prescriptionRepository.findById(prescriptionId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(AppConstants.PRESCRIPTION_NOT_FOUND));
+        log.info(
+                "Deleting prescription with ID: {}",
+                prescriptionId
+        );
+
+        Prescription prescription =
+                prescriptionRepository.findById(prescriptionId)
+                        .orElseThrow(() -> {
+
+                            log.warn(
+                                    "Prescription deletion failed. Prescription not found with ID: {}",
+                                    prescriptionId
+                            );
+
+                            return new ResourceNotFoundException(
+                                    AppConstants.PRESCRIPTION_NOT_FOUND
+                            );
+                        });
 
         prescriptionRepository.delete(prescription);
+
+        log.info(
+                "Prescription deleted successfully with ID: {}",
+                prescriptionId
+        );
 
         return ApiResponse.<String>builder()
                 .success(true)
@@ -121,11 +225,23 @@ public class PrescriptionServiceImpl implements PrescriptionService {
     public ApiResponse<List<PrescriptionResponse>> getPrescriptionsByAppointmentId(
             Long appointmentId) {
 
-        List<PrescriptionResponse> prescriptions = prescriptionRepository
-                .findByAppointmentAppointmentId(appointmentId)
-                .stream()
-                .map(prescriptionMapper::mapToResponse)
-                .collect(Collectors.toList());
+        log.info(
+                "Fetching prescriptions for appointment ID: {}",
+                appointmentId
+        );
+
+        List<PrescriptionResponse> prescriptions =
+                prescriptionRepository
+                        .findByAppointmentAppointmentId(appointmentId)
+                        .stream()
+                        .map(prescriptionMapper::mapToResponse)
+                        .collect(Collectors.toList());
+
+        log.info(
+                "Found {} prescriptions for appointment ID: {}",
+                prescriptions.size(),
+                appointmentId
+        );
 
         return ApiResponse.<List<PrescriptionResponse>>builder()
                 .success(true)
