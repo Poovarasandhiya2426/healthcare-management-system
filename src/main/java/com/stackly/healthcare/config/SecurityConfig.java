@@ -85,6 +85,13 @@ public class SecurityConfig {
                                 "/api/billings/**"
                         ).hasRole("ADMIN")
 
+                        // Swagger / OpenAPI
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
 
                         // All other APIs require JWT
                         .anyRequest().authenticated()
