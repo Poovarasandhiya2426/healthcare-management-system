@@ -13,6 +13,7 @@ import com.stackly.healthcare.repository.PatientRepository;
 import com.stackly.healthcare.request.AppointmentRequest;
 import com.stackly.healthcare.response.AppointmentResponse;
 import com.stackly.healthcare.service.AppointmentService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentMapper appointmentMapper;
 
     @Override
+    @Transactional
     public ApiResponse<AppointmentResponse> createAppointment(
             AppointmentRequest request) {
 
@@ -139,6 +141,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<AppointmentResponse> updateAppointment(
             Long appointmentId,
             AppointmentRequest request) {
@@ -207,6 +210,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> deleteAppointment(Long appointmentId) {
 
         log.info("Deleting appointment with ID: {}", appointmentId);
