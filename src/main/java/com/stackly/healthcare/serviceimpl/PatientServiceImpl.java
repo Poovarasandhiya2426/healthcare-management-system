@@ -14,6 +14,8 @@ import com.stackly.healthcare.service.PatientService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -72,6 +74,7 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
+    @Cacheable(value = "patients", key = "#patientId")
     public ApiResponse<PatientResponse> getPatientById(Long patientId) {
 
         log.info("Fetching patient with ID: {}", patientId);
@@ -115,6 +118,7 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
+    @CacheEvict(value = "patients", key = "#patientId")
     public ApiResponse<PatientResponse> updatePatient(
             Long patientId,
             PatientRequest request) {
@@ -169,6 +173,7 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
+    @CacheEvict(value = "patients", key = "#patientId")
     @Transactional
     public ApiResponse<String> deletePatient(Long patientId) {
 
