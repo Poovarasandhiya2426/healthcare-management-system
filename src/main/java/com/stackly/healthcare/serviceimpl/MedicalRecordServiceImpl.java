@@ -11,6 +11,7 @@ import com.stackly.healthcare.repository.PatientRepository;
 import com.stackly.healthcare.request.MedicalRecordRequest;
 import com.stackly.healthcare.response.MedicalRecordResponse;
 import com.stackly.healthcare.service.MedicalRecordService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     private final MedicalRecordMapper medicalRecordMapper;
 
     @Override
+    @Transactional
     public ApiResponse<MedicalRecordResponse> createMedicalRecord(
             MedicalRecordRequest request) {
 
@@ -126,6 +128,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<MedicalRecordResponse> updateMedicalRecord(
             Long recordId,
             MedicalRecordRequest request) {
@@ -185,6 +188,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<String> deleteMedicalRecord(Long recordId) {
 
         log.info(
